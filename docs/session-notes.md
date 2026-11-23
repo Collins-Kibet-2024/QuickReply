@@ -44,5 +44,10 @@
 - Updated the PRD (AC status), `data-classification.md` (how reasons work with multiple matches), and the CLAUDE.md status line
 
 **Decisions**
-- Broadening the PUBLIC keywords is deferred. Expense, PTO-accrual, and 401(k) questions still classify as `RESTRICTED`, so those handbook sections can't be answered yet
+- Broadening the PUBLIC keywords was first deferred, then pulled forward in the same session (see below)
 - `redactPII` starts as a no-op stub when F2 wires it in; the real version comes with AC1.5
+
+**PUBLIC coverage (pulled forward)**
+- PUBLIC now recognizes every handbook topic: expenses, travel, PTO and accrual, 401(k), vesting, benefits, insurance, dental, vision
+- That alone would have made "What is Sarah's PTO balance?" PUBLIC, so the same change adds an `OTHERS_RECORD` rule (RESTRICTED) for possessives that point at a person ("Sarah's", "my coworker's"), excluding contractions and "Lumen's" / "New Year's"
+- Known gap: a bare name with a policy keyword ("Is Dan on PTO?") is PUBLIC. Documented in the edge-case table

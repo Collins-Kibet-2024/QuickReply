@@ -20,6 +20,10 @@ Information that applies to all employees and is (or could be) published in the 
 - "When is benefits open enrollment?"
 - "What is the parental leave policy?"
 - "How do I submit an expense report?"
+- "How does PTO accrual work?"
+- "What is the 401(k) match?"
+
+Handbook topics recognized as PUBLIC: policies, holidays, leave, enrollment, expenses and reimbursement, receipts, travel, PTO and time off, accrual and carryover, 401(k) and retirement, vesting, benefits, insurance, dental, vision. Medical words such as "sick" are deliberately not PUBLIC signals.
 
 **Bot behavior:** Retrieve matching handbook sections and answer only from them, citing the source. If nothing relevant is found, say so and point to HR.
 
@@ -50,6 +54,7 @@ Information that could harm an individual or the company if disclosed, or that c
 | Investigations and terminations | "Why was Priya fired?", "Is there an investigation into my manager?" |
 | Medical, leave reasons, accommodations | "Why is Dan on leave?", "Does Ana have a disability accommodation?" |
 | Protected characteristics | Questions about anyone's religion, ethnicity, sexual orientation, immigration status, etc. |
+| Others' records | "What is Sarah's PTO balance?", "Is Mark's 401k vested?", "Did my coworker's expense report get approved?" |
 | Sensitive identifiers (PII) | Text containing SSN-like patterns (`123-45-6789`), bank account or routing numbers |
 
 **Bot behavior:** Do not call the LLM. Respond with a neutral deflection: "I can't help with that here. Please contact HR directly at hr@lumen.example." Never confirm or deny anything about the person mentioned.
@@ -73,6 +78,10 @@ Sometimes employees share their own sensitive situation, e.g., "I'm dealing with
 | "What's my salary compared to Jen's?" | RESTRICTED | Involves another person — most restrictive wins |
 | "" (empty) or "salary" (single word) | RESTRICTED | Too ambiguous to answer safely |
 | "My SSN is 123-45-6789, update my W-4" | RESTRICTED | Contains PII; redact before logging |
+| "How does PTO accrual work?" | PUBLIC | General policy |
+| "What is Sarah's PTO balance?" | RESTRICTED | Another person's record, even though "PTO" is a policy topic |
+| "What is Lumen's 401k match?" | PUBLIC | The possessive refers to the company, not a person |
+| "Is Dan on PTO?" | PUBLIC (known gap) | Should be RESTRICTED. The rule-based classifier can't recognize a bare name without a possessive |
 
 ## Reason codes
 
@@ -87,6 +96,7 @@ When several rules match, the most restrictive tier wins. `reasons` lists only t
 | `INVESTIGATION_TERMINATION` | Investigations, firings, misconduct |
 | `MEDICAL_ACCOMMODATION` | Health, leave reasons, accommodations |
 | `PROTECTED_CHARACTERISTIC` | Protected attributes of any person |
+| `OTHERS_RECORD` | Records of another person, named or by role (e.g. "Sarah's", "my coworker's") |
 | `PII_DETECTED` | SSN, bank account, or similar identifier pattern |
 | `SELF_RECORD` | Requester's own records (PERSONAL) |
 | `AMBIGUOUS_INPUT` | Empty, very short, or unclear input |
