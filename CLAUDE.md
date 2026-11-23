@@ -2,22 +2,27 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project status
+## Project overview
 
-QuickReply is an HR self-service chat assistant prototype for a fictional company (Lumen Systems). It is at the scaffolding stage: `src/`, `public/`, `tests/`, and `data/handbook/` exist but are empty. Express and Vitest are installed, but there's no application code yet. Read `docs/PRD.md` and `docs/data-classification.md` before any implementation work. They are the source of truth. `docs/session-notes.md` is a running log of work sessions; add an entry when a session finishes meaningful work.
+QuickReply is an HR self-service chat assistant for Lumen Systems, a fictional software company with about 2,000 employees. It answers general policy questions from a synthetic employee handbook. Questions involving personal or restricted HR data are deflected before any LLM sees them.
 
-## Stack (per PRD, overrides the generic Desktop/AGENTS.md)
+Requirements and classification rules (source of truth; if code disagrees, these win):
 
-The parent `~/Desktop/AGENTS.md` describes a generic React + Vite + Tailwind + Supabase stack. **For this project the PRD wins**:
+@docs/PRD.md
+@docs/data-classification.md
 
-- Node.js + Express backend
-- Anthropic API via `@anthropic-ai/sdk`, called **server-side only**. The key is in `.env`, which is gitignored.
-- Frontend: one static HTML page plus vanilla JS, served by Express. No React, no build step.
-- Vitest for unit tests, Supertest for API routes
-- Synthetic handbook stored as markdown in `data/handbook/`
-- Out of scope: auth/SSO, HRIS integration, conversation storage, production deployment
+`docs/session-notes.md` is a running log of work sessions. Add an entry when a session finishes meaningful work.
 
-The workflow rules in `AGENTS.md` still apply: GitHub Issues, `type/<issue>-<desc>` branches, `<type>(<scope>): <summary> (#<issue>)` commits, colocated `*.test.js` files, and `TODO(#issue)`. If the PRD and AGENTS.md conflict on something else, raise it with the user rather than picking one silently.
+**Status:** scaffolding only. Express and Vitest are installed; there's no application code yet. Supertest and `@anthropic-ai/sdk` get installed when F2 (chat endpoint) starts.
+
+This file overrides the generic `~/Desktop/AGENTS.md` (React/Vite/Tailwind stack, colocated tests, issue-scoped commits) wherever they differ.
+
+## Tech stack
+
+- **Server:** Node.js, Express
+- **LLM:** `@anthropic-ai/sdk`, **server-side only**. The API key lives in `.env`.
+- **Frontend:** one static HTML page plus vanilla JS, served by Express. No framework, no build step.
+- **Tests:** Vitest (unit), Supertest (API routes)
 
 ## Commands
 
@@ -25,38 +30,73 @@ The workflow rules in `AGENTS.md` still apply: GitHub Issues, `type/<issue>-<des
 npm install
 npm test                                # vitest run: all tests, once
 npm run test:watch                      # vitest in watch mode
-npm test -- src/path/file.test.js       # one file
+npm test -- tests/path/file.test.js     # one file
 npm test -- -t "test name"              # tests matching a name
 ```
 
-Vitest exits with code 1 when no test files exist. There's no server entry point or `start` script yet; add one here once the Express app exists.
+Vitest exits with code 1 when no test files exist. Add a `start` script here once the server entry point exists.
 
-## Architecture (planned; see PRD §6)
+## Architecture decisions
 
-Every request to `POST /api/chat` goes through a classify-first pipeline:
+- **Classify first.** Every request goes through `classifyQuery(text)` → `{ tier, reasons }` before anything else (PRD §6).
+- **RESTRICTED and PERSONAL never reach the LLM.** They get fixed, templated responses.
+- **Grounded answers only.** For PUBLIC questions, `retrieveHandbook(text)` keyword-scores `data/handbook/*.md`. The LLM answers only from those excerpts and cites the sources. If nothing matches, the bot replies without calling the LLM.
+- **The LLM client is injected.** The Express app is built by a factory that takes the client as a parameter, so tests pass a mock. Only the server entry point constructs the real Anthropic client.
+- **Output is redacted.** `redactPII` runs on LLM output before it's returned.
+
+## Folder structure
+
+Target layout; create files as features need them.
+
+| Path | What belongs there |
+|---|---|
+| `src/app.js` | `createApp({ llmClient })`: builds and returns the Express app, without listening |
+| `src/server.js` | Entry point: loads env, creates the real Anthropic client, calls `listen` |
+| `src/classifier/` | `classifyQuery`, `redactPII`, pattern definitions (F1) |
+| `src/retrieval/` | Handbook loading and `retrieveHandbook` (F2) |
+| `src/llm/` | Anthropic client wrapper and the grounded-answer prompt |
+| `src/routes/` | Route handlers such as `POST /api/chat` |
+| `public/` | Static chat UI: `index.html`, JS, CSS (F3) |
+| `data/handbook/` | Synthetic handbook sections as markdown |
+| `data/raw/` | Gitignored scratch data; never commit |
+| `tests/` | All tests, mirroring `src/` (for example `tests/classifier/classify-query.test.js`) |
+| `docs/` | PRD, classification policy, session notes |
+
+## Coding conventions
+
+- ES modules (`import`/`export`; `package.json` has `"type": "module"`), and named exports only.
+- Small, pure functions. Keep I/O (filesystem, network, env) at the edges, such as `server.js` and the handbook loader.
+- Use descriptive names. Files are `kebab-case.js`.
+- No secrets in code. Read config from `process.env` in `server.js` only.
+
+## Testing strategy
+
+- **Strict TDD:** write a failing test, make it pass, then refactor.
+- Tests live in `tests/`, not next to the source.
+- **Never call the real Anthropic API in tests.** Inject a mock client and assert it was *not* called for RESTRICTED, PERSONAL, and no-match cases.
+- Every PRD acceptance criterion (AC1.x, AC2.x, AC3.x) gets at least one test. Name tests after the AC, for example `it('AC1.1: others\' compensation is RESTRICTED')`. Cover the edge-case table in `data-classification.md` too.
+- Changing a classification rule requires a failing test, then the code, then an update to `data-classification.md` in the same commit series.
+
+## Commit conventions
+
+Use conventional commits: `test:`, `feat:`, `refactor:`, `docs:`, `chore:`, with an optional scope. Label TDD steps:
 
 ```
-classifyQuery(text) → { tier, reasons }
-  RESTRICTED → fixed deflection to hr@lumen.example   (no LLM call)
-  PERSONAL   → fixed self-service-portal redirect     (no LLM call)
-  PUBLIC     → retrieveHandbook(text)  (keyword scoring over data/handbook/*.md)
-               → no matches: "not found" reply, no LLM call
-               → else LLM answers ONLY from the excerpts, citing sources
-               → redactPII(output)
+test(classifier): AC1.1 others' compensation is RESTRICTED (red)
+feat(classifier): detect others' compensation (green)
+refactor(classifier): extract keyword patterns (refactor)
 ```
 
-Invariants the code and tests must enforce:
+## Do's and don'ts
 
-- **The classifier runs before anything else.** RESTRICTED or PERSONAL text must never reach the LLM client. Tests verify this with a mocked LLM client, so keep the client injectable.
-- **Most restrictive tier wins.** Empty, single-word, or ambiguous input is classified `RESTRICTED` (`AMBIGUOUS_INPUT`), never `PUBLIC`.
-- **Never log raw user text.** Logs hold only request ID, tier, and reason codes. If text must be kept, store the redacted version (for example, SSN patterns removed).
-- Deflection responses never confirm or deny anything about the person named, and never echo sensitive details back.
-- All repository data is synthetic: no real names, salaries, or IDs.
+- **Do** call `classifyQuery` first in every route that handles user text.
+- **Do** classify to the more restrictive tier when unsure.
+- **Don't** log raw user messages. Log only request ID, tier, and reason codes, and use redacted text if anything more is needed.
+- **Don't** read, print, or commit `.env`.
+- **Don't** add real names, salaries, or employee IDs. All data is synthetic.
 
-## Classifier change process
+## Context management
 
-`docs/data-classification.md` defines the tiers, reason codes (`OTHERS_COMPENSATION`, `PII_DETECTED`, `SELF_RECORD`, `AMBIGUOUS_INPUT`, `GENERAL_POLICY`, etc.), and edge-case table. If code and that document disagree, the document wins. The classifier (F1) is built with strict TDD, so any rule change needs:
-
-1. A failing test first
-2. The code change
-3. An update to `data-classification.md` in the same PR or commit series
+- Run `/clear` between features (F1, F2, F3) or between phases (explore, plan, implement).
+- In long sessions, run `/compact` with a focus instruction, for example `/compact keep classifier test status and open ACs`.
+- Run `claude --continue` to resume the last session.
