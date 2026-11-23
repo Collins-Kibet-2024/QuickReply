@@ -52,3 +52,12 @@
 - That alone would have made "What is Sarah's PTO balance?" PUBLIC, so the same change adds an `OTHERS_RECORD` rule (RESTRICTED) for possessives that point at a person ("Sarah's", "my coworker's"), excluding contractions and "Lumen's" / "New Year's"
 - Closed the bare-name gap: a capitalized word mid-sentence that isn't on a not-a-person list (holidays, months, weekdays, Lumen, program names) is `OTHERS_RECORD`. Logic lives in `src/classifier/person-names.js`
 - Remaining limits, documented in the edge-case table: lowercase names are missed ("is dan on pto?"), and places or brands are over-restricted ("PTO policy in California")
+
+**F2: retrieval and chat endpoint**
+- Built in 8 steps, each with red and green commits; 117 tests pass. No test calls the real Anthropic API
+- `src/retrieval/`: `loadHandbook` splits each file into `##` sections (22 total); `retrieveHandbook(text, sections)` scores keywords with titles weighted 3x and returns the top 3. It takes sections as an argument so file I/O stays in `server.js`
+- `src/llm/`: `buildGroundedPrompt` (fixed system prompt with the exact "I don't know — please contact HR." fallback) and `createAnthropicLlm`, which uses `claude-opus-5-5` at low effort with the API's server-side fallback on refusals
+- `POST /api/chat` returns `{ kind, tier, answer, sources }`, where `kind` is `answer`, `deflection`, `redirect`, or `no_match`. Every RESTRICTED and PERSONAL example from the policy doc is tested to reach neither retrieval nor the LLM
+- Bad input gets 400, LLM failures get 502 with a generic message, and logs contain only request ID, tier, reason codes, and an error name
+- Smoke-tested `npm start` with RESTRICTED and PERSONAL questions only, so no API call was made
+- Open: "When is my next performance review?" is RESTRICTED, not PERSONAL as the policy doc lists it (safe, but inconsistent). A live PUBLIC question still needs a manual check with a real key

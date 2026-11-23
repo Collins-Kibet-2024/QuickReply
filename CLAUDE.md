@@ -13,7 +13,7 @@ Requirements and classification rules (source of truth; if code disagrees, these
 
 `docs/session-notes.md` is a running log of work sessions. Add an entry when a session finishes meaningful work.
 
-**Status:** F1 (classifier) is in `src/classifier/` and covers AC1.1, AC1.3, AC1.4, AC1.6, AC1.7, and the leave/accommodation part of AC1.2. F2 and F3 are not started. Express, `@anthropic-ai/sdk`, `dotenv`, Vitest, and Supertest are installed.
+**Status:** F1 (classifier) covers AC1.1, AC1.3, AC1.4, AC1.6, AC1.7, and the leave/accommodation part of AC1.2. F2 (retrieval and `POST /api/chat`) covers AC2.1–AC2.5. F3 (chat UI) is not started. `redactPII` is a no-op until AC1.5.
 
 This file overrides the generic `~/Desktop/AGENTS.md` (React/Vite/Tailwind stack, colocated tests, issue-scoped commits) wherever they differ.
 
@@ -28,13 +28,14 @@ This file overrides the generic `~/Desktop/AGENTS.md` (React/Vite/Tailwind stack
 
 ```bash
 npm install
+npm start                               # server on PORT (default 3000); needs .env
 npm test                                # vitest run: all tests, once
 npm run test:watch                      # vitest in watch mode
 npm test -- tests/path/file.test.js     # one file
 npm test -- -t "test name"              # tests matching a name
 ```
 
-Vitest exits with code 1 when no test files exist. Add a `start` script here once the server entry point exists.
+Environment variables (read only in `src/server.js`): `ANTHROPIC_API_KEY` (required), `ANTHROPIC_MODEL` (default `claude-opus-5-5`), `PORT` (default 3000).
 
 ## Architecture decisions
 
