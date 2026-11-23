@@ -61,3 +61,9 @@
 - Bad input gets 400, LLM failures get 502 with a generic message, and logs contain only request ID, tier, reason codes, and an error name
 - Smoke-tested `npm start` with RESTRICTED and PERSONAL questions only, so no API call was made
 - Open: "When is my next performance review?" is RESTRICTED, not PERSONAL as the policy doc lists it (safe, but inconsistent). A live PUBLIC question still needs a manual check with a real key
+
+**F2 by phase (Explore → Plan → Implement → Commit)**
+- **Explore:** Read the classifier, its tests, and the handbook before writing F2 code. Running the policy doc's examples through `classifyQuery` found the two unsafe results above, so they were fixed first: a question classified PUBLIC goes to the LLM, so it has to be truly public
+- **Plan:** Split F2 into 8 test-first steps, each tied to an AC: section parsing and loading (AC2.1), keyword scoring (AC2.1, AC2.5), the grounded prompt (AC2.3), the Anthropic wrapper (AC2.3), `createApp` with classify-first deflections (AC2.2), PUBLIC answers with sources and the no-match case (AC2.3–AC2.5), error handling and clean logs, and the `server.js` entry point. I/O stays at the edges: retrieval takes sections as an argument, and the LLM client is injected
+- **Implement:** Each step started with a failing test, then the code to make it pass. Added `src/retrieval/`, `src/llm/`, `src/routes/chat.js`, `src/app.js`, `src/server.js`, and the `redactPII` stub. Finished with 8 test files and 117 passing tests, all using a mocked LLM client
+- **Commit:** 16 commits from `0404d6e` to `a9cbf33`, in `(red)`/`(green)` pairs scoped `retrieval`, `llm`, `routes`, and `server`, plus a final `docs:` commit for the CLAUDE.md status and commands. The `git push` deny rule still applies, so the push is done manually
