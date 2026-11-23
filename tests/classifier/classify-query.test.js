@@ -16,6 +16,13 @@ const GENERAL_POLICY_QUESTIONS = [
   'How does FMLA leave work?',
 ];
 
+const SELF_RECORD_QUESTIONS = [
+  'What is my salary?',
+  'What is my PTO balance?',
+  'How many PTO days do I have left?',
+  'Did my 401k enrollment go through?',
+];
+
 describe('classifyQuery', () => {
   describe("AC1.1: others' compensation is RESTRICTED", () => {
     it.each(OTHERS_COMPENSATION_QUESTIONS)('%s', (question) => {
@@ -32,6 +39,15 @@ describe('classifyQuery', () => {
 
       expect(tier).toBe(TIERS.PUBLIC);
       expect(reasons).toContain(REASONS.GENERAL_POLICY);
+    });
+  });
+
+  describe("AC1.4: requester's own records are PERSONAL", () => {
+    it.each(SELF_RECORD_QUESTIONS)('%s', (question) => {
+      const { tier, reasons } = classifyQuery(question);
+
+      expect(tier).toBe(TIERS.PERSONAL);
+      expect(reasons).toContain(REASONS.SELF_RECORD);
     });
   });
 });
