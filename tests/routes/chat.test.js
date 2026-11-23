@@ -1,13 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../../src/app.js';
-import { DEFLECTION_MESSAGE, PERSONAL_REDIRECT_MESSAGE } from '../../src/routes/chat.js';
+import {
+  DEFLECTION_MESSAGE,
+  PERSONAL_REDIRECT_MESSAGE,
+  NO_MATCH_MESSAGE,
+} from '../../src/routes/chat.js';
 import { classifyQuery } from '../../src/classifier/classify-query.js';
 import { retrieveHandbook } from '../../src/retrieval/retrieve-handbook.js';
+import { redactPII } from '../../src/classifier/redact-pii.js';
 
 // Spy on the real functions so call order can be checked without changing behavior.
 vi.mock('../../src/classifier/classify-query.js', { spy: true });
 vi.mock('../../src/retrieval/retrieve-handbook.js', { spy: true });
+vi.mock('../../src/classifier/redact-pii.js', { spy: true });
 
 const HANDBOOK = [
   {
@@ -44,7 +50,7 @@ const PERSONAL_QUESTIONS = [
 ];
 
 function setup() {
-  const llmClient = { answer: vi.fn() };
+  const llmClient = { answer: vi.fn().mockResolvedValue({ text: 'Lumen observes 11 paid holidays.' }) };
   const app = createApp({ llmClient, handbook: HANDBOOK });
   return { app, llmClient };
 }
@@ -102,6 +108,57 @@ describe('POST /api/chat', () => {
     expect(vi.mocked(classifyQuery).mock.invocationCallOrder[0]).toBeLessThan(
       vi.mocked(retrieveHandbook).mock.invocationCallOrder[0],
     );
+  });
+
+  describe('PUBLIC questions', () => {
+    it('AC2.3: the LLM answers from the retrieved excerpts only', async () => {
+      const { app, llmClient } = setup();
+
+      const res = await ask(app, 'How many paid holidays do we get?');
+
+      expect(res.status).toBe(200);
+      expect(llmClient.answer).toHaveBeenCalledOnce();
+      expect(llmClient.answer).toHaveBeenCalledWith({
+        question: 'How many paid holidays do we get?',
+        sections: HANDBOOK,
+      });
+      expect(res.body.kind).toBe('answer');
+      expect(res.body.tier).toBe('PUBLIC');
+      expect(res.body.answer).toBe('Lumen observes 11 paid holidays.');
+    });
+
+    it('AC2.4: the response lists the source sections', async () => {
+      const { app } = setup();
+
+      const res = await ask(app, 'How many paid holidays do we get?');
+
+      expect(res.body.sources).toEqual([
+        { title: 'Company Holidays › Paid holidays', source: 'data/handbook/holidays.md' },
+      ]);
+    });
+
+    it('runs redactPII on the LLM output before returning it', async () => {
+      const { app } = setup();
+
+      await ask(app, 'How many paid holidays do we get?');
+
+      expect(redactPII).toHaveBeenCalledWith('Lumen observes 11 paid holidays.');
+    });
+
+    it('AC2.5: says so without calling the LLM when no section matches', async () => {
+      const { app, llmClient } = setup();
+
+      // PUBLIC, but the test handbook only covers holidays.
+      const res = await ask(app, 'What is the parental leave policy?');
+
+      expect(res.body).toEqual({
+        kind: 'no_match',
+        tier: 'PUBLIC',
+        answer: NO_MATCH_MESSAGE,
+        sources: [],
+      });
+      expect(llmClient.answer).not.toHaveBeenCalled();
+    });
   });
 
   it('uses the fixed messages from the classification policy', () => {
