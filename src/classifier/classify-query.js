@@ -21,10 +21,16 @@ const RULES = [
   },
 ];
 
+// A single word like "salary" could mean anything, so it is treated as ambiguous.
+const MIN_WORDS = 2;
+
+function countWords(text) {
+  return text.split(/\s+/).filter(Boolean).length;
+}
+
 /** Classify a user question into a data-sensitivity tier with reason codes. */
 export function classifyQuery(text) {
-  const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
-  if (wordCount < 2) {
+  if (countWords(text) < MIN_WORDS) {
     return { tier: TIERS.RESTRICTED, reasons: [REASONS.AMBIGUOUS_INPUT] };
   }
 

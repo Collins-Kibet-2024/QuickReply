@@ -25,40 +25,40 @@ const SELF_RECORD_QUESTIONS = [
 
 const AMBIGUOUS_INPUTS = ['', '   ', 'salary', 'holidays'];
 
+const CASES = [
+  [
+    "AC1.1: others' compensation is RESTRICTED",
+    OTHERS_COMPENSATION_QUESTIONS,
+    TIERS.RESTRICTED,
+    REASONS.OTHERS_COMPENSATION,
+  ],
+  [
+    'AC1.3: general policy questions are PUBLIC',
+    GENERAL_POLICY_QUESTIONS,
+    TIERS.PUBLIC,
+    REASONS.GENERAL_POLICY,
+  ],
+  [
+    "AC1.4: requester's own records are PERSONAL",
+    SELF_RECORD_QUESTIONS,
+    TIERS.PERSONAL,
+    REASONS.SELF_RECORD,
+  ],
+  [
+    'AC1.6: empty or single-word input is RESTRICTED',
+    AMBIGUOUS_INPUTS,
+    TIERS.RESTRICTED,
+    REASONS.AMBIGUOUS_INPUT,
+  ],
+];
+
 describe('classifyQuery', () => {
-  describe("AC1.1: others' compensation is RESTRICTED", () => {
-    it.each(OTHERS_COMPENSATION_QUESTIONS)('%s', (question) => {
-      const { tier, reasons } = classifyQuery(question);
-
-      expect(tier).toBe(TIERS.RESTRICTED);
-      expect(reasons).toContain(REASONS.OTHERS_COMPENSATION);
-    });
-  });
-
-  describe('AC1.3: general policy questions are PUBLIC', () => {
-    it.each(GENERAL_POLICY_QUESTIONS)('%s', (question) => {
-      const { tier, reasons } = classifyQuery(question);
-
-      expect(tier).toBe(TIERS.PUBLIC);
-      expect(reasons).toContain(REASONS.GENERAL_POLICY);
-    });
-  });
-
-  describe("AC1.4: requester's own records are PERSONAL", () => {
-    it.each(SELF_RECORD_QUESTIONS)('%s', (question) => {
-      const { tier, reasons } = classifyQuery(question);
-
-      expect(tier).toBe(TIERS.PERSONAL);
-      expect(reasons).toContain(REASONS.SELF_RECORD);
-    });
-  });
-
-  describe('AC1.6: empty or single-word input is RESTRICTED', () => {
-    it.each(AMBIGUOUS_INPUTS)('%j', (input) => {
+  describe.each(CASES)('%s', (_label, inputs, expectedTier, expectedReason) => {
+    it.each(inputs)('%j', (input) => {
       const { tier, reasons } = classifyQuery(input);
 
-      expect(tier).toBe(TIERS.RESTRICTED);
-      expect(reasons).toContain(REASONS.AMBIGUOUS_INPUT);
+      expect(tier).toBe(expectedTier);
+      expect(reasons).toContain(expectedReason);
     });
   });
 });
