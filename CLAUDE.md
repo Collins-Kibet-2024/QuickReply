@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-QuickReply is an HR self-service chat assistant prototype for a fictional company (Lumen Systems). It is at the scaffolding stage: `src/`, `public/`, `tests/`, and `data/handbook/` exist but are empty, and `package.json` has no real scripts or dependencies yet. Read `docs/PRD.md` and `docs/data-classification.md` before any implementation work. They are the source of truth. `docs/session-notes.md` is a running log of work sessions; add an entry when a session finishes meaningful work.
+QuickReply is an HR self-service chat assistant prototype for a fictional company (Lumen Systems). It is at the scaffolding stage: `src/`, `public/`, `tests/`, and `data/handbook/` exist but are empty. Express and Vitest are installed, but there's no application code yet. Read `docs/PRD.md` and `docs/data-classification.md` before any implementation work. They are the source of truth. `docs/session-notes.md` is a running log of work sessions; add an entry when a session finishes meaningful work.
 
 ## Stack (per PRD, overrides the generic Desktop/AGENTS.md)
 
@@ -21,16 +21,15 @@ The workflow rules in `AGENTS.md` still apply: GitHub Issues, `type/<issue>-<des
 
 ## Commands
 
-Nothing is configured yet. `npm test` is the npm placeholder and fails. Once Vitest is added, the expected commands are:
-
 ```bash
 npm install
-npx vitest run                          # all tests
-npx vitest run src/path/file.test.js    # one file
-npx vitest run -t "test name"           # tests matching a name
+npm test                                # vitest run: all tests, once
+npm run test:watch                      # vitest in watch mode
+npm test -- src/path/file.test.js       # one file
+npm test -- -t "test name"              # tests matching a name
 ```
 
-When real scripts are added to `package.json`, update this section.
+Vitest exits with code 1 when no test files exist. There's no server entry point or `start` script yet; add one here once the Express app exists.
 
 ## Architecture (planned; see PRD §6)
 
