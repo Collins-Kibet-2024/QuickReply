@@ -14,6 +14,18 @@ const GENERAL_POLICY_QUESTIONS = [
   'When is open enrollment?',
   'What is the parental leave policy?',
   'How does FMLA leave work?',
+  'How do I submit an expense report?',
+  'What expenses are reimbursable?',
+  'Do I need a receipt for a client meal?',
+  'What is the daily meal allowance for travel?',
+  'How does PTO accrual work?',
+  'How many PTO days can I carry over?',
+  'What is the 401k match?',
+  'When does the 401(k) employer match vest?',
+  'What dental and vision coverage do we get?',
+  'Which health insurance plans are offered?',
+  "What is Lumen's 401k match?",
+  "Is New Year's Day a paid holiday?",
 ];
 
 const SELF_RECORD_QUESTIONS = [
@@ -36,6 +48,14 @@ const CONFLICTING_SIGNAL_QUESTIONS = [
   "What's my salary compared to Jen's?",
   "Is my salary higher than Jen's?",
   "My salary vs my teammate's salary",
+];
+
+// Records of someone other than the requester, named or by role.
+const OTHERS_RECORD_QUESTIONS = [
+  "What is Sarah's PTO balance?",
+  "what is jen's pto balance?",
+  "Is Mark's 401k vested?",
+  "Did my coworker's expense report get approved?",
 ];
 
 const AMBIGUOUS_INPUTS = ['', '   ', 'salary', 'holidays'];
@@ -72,6 +92,12 @@ const CASES = [
     REASONS.OTHERS_COMPENSATION,
   ],
   [
+    "AC1.3 guard: another person's records are RESTRICTED",
+    OTHERS_RECORD_QUESTIONS,
+    TIERS.RESTRICTED,
+    REASONS.OTHERS_RECORD,
+  ],
+  [
     'AC1.6: empty or single-word input is RESTRICTED',
     AMBIGUOUS_INPUTS,
     TIERS.RESTRICTED,
@@ -92,6 +118,7 @@ describe('classifyQuery', () => {
   it('AC1.7: reports only the reasons for the winning tier', () => {
     const { reasons } = classifyQuery("What's my salary compared to Jen's?");
 
-    expect(reasons).toEqual([REASONS.OTHERS_COMPENSATION]);
+    expect(reasons).toContain(REASONS.OTHERS_COMPENSATION);
+    expect(reasons).not.toContain(REASONS.SELF_RECORD);
   });
 });

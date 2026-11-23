@@ -7,7 +7,7 @@ describe('classification constants', () => {
     expect(TIERS[name]).toBe(name);
   });
 
-  it.each(['OTHERS_COMPENSATION', 'GENERAL_POLICY', 'MEDICAL_ACCOMMODATION'])(
+  it.each(['OTHERS_COMPENSATION', 'GENERAL_POLICY', 'MEDICAL_ACCOMMODATION', 'OTHERS_RECORD'])(
     'reason code %s matches the policy doc',
     (code) => {
       expect(REASONS[code]).toBe(code);
