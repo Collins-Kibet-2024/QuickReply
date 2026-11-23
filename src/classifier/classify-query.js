@@ -1,4 +1,5 @@
 import { TIERS, REASONS } from './tiers.js';
+import { mentionsPersonName } from './person-names.js';
 
 const COMPENSATION_WORDS = String.raw`make|makes|salary|bonus|pay|earns?|compensation`;
 
@@ -40,6 +41,12 @@ const RULES = [
       String.raw`\b(?!(?:${NON_PERSON_POSSESSIVES.join('|')})['’]s\b)[a-z]+['’]s\b`,
       'i',
     ),
+    tier: TIERS.RESTRICTED,
+    reason: REASONS.OTHERS_RECORD,
+  },
+  {
+    // A bare name mid-sentence ("Is Dan on PTO?"). Not a regex, but it has the same `test` method.
+    pattern: { test: mentionsPersonName },
     tier: TIERS.RESTRICTED,
     reason: REASONS.OTHERS_RECORD,
   },
