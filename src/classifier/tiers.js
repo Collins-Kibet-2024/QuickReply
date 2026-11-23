@@ -7,4 +7,5 @@ export const TIERS = Object.freeze({
 export const REASONS = Object.freeze({
   OTHERS_COMPENSATION: 'OTHERS_COMPENSATION',
   GENERAL_POLICY: 'GENERAL_POLICY',
+  SELF_RECORD: 'SELF_RECORD',
 });
