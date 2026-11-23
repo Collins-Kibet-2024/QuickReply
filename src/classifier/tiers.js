@@ -1,0 +1,9 @@
+export const TIERS = Object.freeze({
+  PUBLIC: 'PUBLIC',
+  PERSONAL: 'PERSONAL',
+  RESTRICTED: 'RESTRICTED',
+});
+
+export const REASONS = Object.freeze({
+  OTHERS_COMPENSATION: 'OTHERS_COMPENSATION',
+});
