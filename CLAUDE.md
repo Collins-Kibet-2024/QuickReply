@@ -13,7 +13,7 @@ Requirements and classification rules (source of truth; if code disagrees, these
 
 `docs/session-notes.md` is a running log of work sessions. Add an entry when a session finishes meaningful work.
 
-**Status:** scaffolding only. Express and Vitest are installed; there's no application code yet. Supertest and `@anthropic-ai/sdk` get installed when F2 (chat endpoint) starts.
+**Status:** F1 (classifier) is in `src/classifier/` and covers AC1.1, AC1.3, AC1.4, AC1.6, AC1.7, and the leave/accommodation part of AC1.2. F2 and F3 are not started. Express, `@anthropic-ai/sdk`, `dotenv`, Vitest, and Supertest are installed.
 
 This file overrides the generic `~/Desktop/AGENTS.md` (React/Vite/Tailwind stack, colocated tests, issue-scoped commits) wherever they differ.
 

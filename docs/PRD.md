@@ -73,8 +73,9 @@ Browser → POST /api/chat
 - **AC1.3** General policy questions return `PUBLIC`.
 - **AC1.4** Questions about the requester's own records ("my PTO balance", "my salary") return `PERSONAL`.
 - **AC1.6** Empty, very short, or ambiguous input defaults to the more restrictive tier.
+- **AC1.7** When signals for multiple tiers are present, the most restrictive tier wins.
 
-AC1.2, AC1.5, and AC1.7 are deferred to Future work (§10).
+AC1.2 is partly implemented: questions about another person's leave or accommodations return `RESTRICTED`. The rest of AC1.2 and all of AC1.5 are deferred to Future work (§10).
 
 ### F2 — Handbook retrieval + chat endpoint (built with Explore→Plan→Implement→Commit)
 
@@ -111,6 +112,5 @@ AC1.2, AC1.5, and AC1.7 are deferred to Future work (§10).
 - Analytics dashboard for HR on question volume and topics (where people analytics comes back in).
 - Slack/Teams integration.
 - Deferred F1 classifier criteria:
-  - **AC1.2** Questions about performance reviews, disciplinary action, investigations, terminations of named people, or anyone's medical/accommodation information return `RESTRICTED`.
+  - **AC1.2** Questions about performance reviews, disciplinary action, investigations, terminations of named people, or anyone's medical/accommodation information return `RESTRICTED`. (Others' leave and accommodations are already implemented.)
   - **AC1.5** Input containing an SSN-like pattern or bank account number returns `RESTRICTED`, and a redacted copy of the text is available for logging.
-  - **AC1.7** When signals for multiple tiers are present, the most restrictive tier wins.

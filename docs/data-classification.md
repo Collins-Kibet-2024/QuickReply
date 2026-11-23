@@ -78,6 +78,8 @@ Sometimes employees share their own sensitive situation, e.g., "I'm dealing with
 
 `classifyQuery` returns reason codes so behavior is explainable and testable without logging raw text.
 
+When several rules match, the most restrictive tier wins. `reasons` lists only the codes for that winning tier. For example, "What's my salary compared to Jen's?" returns `RESTRICTED` with `[OTHERS_COMPENSATION]`, not `SELF_RECORD`. Input that matches no rule is `RESTRICTED` with an empty `reasons` list.
+
 | Code | Meaning |
 |---|---|
 | `OTHERS_COMPENSATION` | Compensation of another person |
