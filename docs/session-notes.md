@@ -50,4 +50,5 @@
 **PUBLIC coverage (pulled forward)**
 - PUBLIC now recognizes every handbook topic: expenses, travel, PTO and accrual, 401(k), vesting, benefits, insurance, dental, vision
 - That alone would have made "What is Sarah's PTO balance?" PUBLIC, so the same change adds an `OTHERS_RECORD` rule (RESTRICTED) for possessives that point at a person ("Sarah's", "my coworker's"), excluding contractions and "Lumen's" / "New Year's"
-- Known gap: a bare name with a policy keyword ("Is Dan on PTO?") is PUBLIC. Documented in the edge-case table
+- Closed the bare-name gap: a capitalized word mid-sentence that isn't on a not-a-person list (holidays, months, weekdays, Lumen, program names) is `OTHERS_RECORD`. Logic lives in `src/classifier/person-names.js`
+- Remaining limits, documented in the edge-case table: lowercase names are missed ("is dan on pto?"), and places or brands are over-restricted ("PTO policy in California")

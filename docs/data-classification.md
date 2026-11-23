@@ -54,7 +54,7 @@ Information that could harm an individual or the company if disclosed, or that c
 | Investigations and terminations | "Why was Priya fired?", "Is there an investigation into my manager?" |
 | Medical, leave reasons, accommodations | "Why is Dan on leave?", "Does Ana have a disability accommodation?" |
 | Protected characteristics | Questions about anyone's religion, ethnicity, sexual orientation, immigration status, etc. |
-| Others' records | "What is Sarah's PTO balance?", "Is Mark's 401k vested?", "Did my coworker's expense report get approved?" |
+| Others' records | "What is Sarah's PTO balance?", "Is Mark's 401k vested?", "Did my coworker's expense report get approved?", "Is Dan on PTO?" |
 | Sensitive identifiers (PII) | Text containing SSN-like patterns (`123-45-6789`), bank account or routing numbers |
 
 **Bot behavior:** Do not call the LLM. Respond with a neutral deflection: "I can't help with that here. Please contact HR directly at hr@lumen.example." Never confirm or deny anything about the person mentioned.
@@ -81,7 +81,10 @@ Sometimes employees share their own sensitive situation, e.g., "I'm dealing with
 | "How does PTO accrual work?" | PUBLIC | General policy |
 | "What is Sarah's PTO balance?" | RESTRICTED | Another person's record, even though "PTO" is a policy topic |
 | "What is Lumen's 401k match?" | PUBLIC | The possessive refers to the company, not a person |
-| "Is Dan on PTO?" | PUBLIC (known gap) | Should be RESTRICTED. The rule-based classifier can't recognize a bare name without a possessive |
+| "Is Dan on PTO?" | RESTRICTED | A capitalized word mid-sentence is treated as a person's name |
+| "Is Martin Luther King Jr. Day a paid holiday?" | PUBLIC | Holiday, month, weekday, and program names are on the not-a-person list |
+| "is dan on pto?" | PUBLIC (known gap) | Should be RESTRICTED. Lowercase names are not detected |
+| "What is the PTO policy in California?" | RESTRICTED (known over-restriction) | Places and brands look like names. Add them to the not-a-person list in `src/classifier/person-names.js` when they block real policy questions |
 
 ## Reason codes
 
@@ -96,7 +99,7 @@ When several rules match, the most restrictive tier wins. `reasons` lists only t
 | `INVESTIGATION_TERMINATION` | Investigations, firings, misconduct |
 | `MEDICAL_ACCOMMODATION` | Health, leave reasons, accommodations |
 | `PROTECTED_CHARACTERISTIC` | Protected attributes of any person |
-| `OTHERS_RECORD` | Records of another person, named or by role (e.g. "Sarah's", "my coworker's") |
+| `OTHERS_RECORD` | Records of another person: a possessive ("Sarah's", "my coworker's") or a capitalized name mid-sentence ("Is Dan on PTO?") |
 | `PII_DETECTED` | SSN, bank account, or similar identifier pattern |
 | `SELF_RECORD` | Requester's own records (PERSONAL) |
 | `AMBIGUOUS_INPUT` | Empty, very short, or unclear input |
