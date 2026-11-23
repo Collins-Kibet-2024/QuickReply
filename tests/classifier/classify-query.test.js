@@ -23,6 +23,21 @@ const SELF_RECORD_QUESTIONS = [
   'Did my 401k enrollment go through?',
 ];
 
+// Leave and accommodation questions about someone other than the requester.
+const OTHERS_MEDICAL_QUESTIONS = [
+  'Why is Dan on leave?',
+  'Is Dan on medical leave?',
+  'Why is my teammate on FMLA?',
+  'Does Ana have a disability accommodation?',
+];
+
+// Each mixes a PERSONAL signal ("my salary") with someone else's compensation.
+const CONFLICTING_SIGNAL_QUESTIONS = [
+  "What's my salary compared to Jen's?",
+  "Is my salary higher than Jen's?",
+  "My salary vs my teammate's salary",
+];
+
 const AMBIGUOUS_INPUTS = ['', '   ', 'salary', 'holidays'];
 
 const CASES = [
@@ -45,6 +60,18 @@ const CASES = [
     REASONS.SELF_RECORD,
   ],
   [
+    "AC1.2 (partial): others' leave reasons and accommodations are RESTRICTED",
+    OTHERS_MEDICAL_QUESTIONS,
+    TIERS.RESTRICTED,
+    REASONS.MEDICAL_ACCOMMODATION,
+  ],
+  [
+    'AC1.7: the most restrictive tier wins when signals conflict',
+    CONFLICTING_SIGNAL_QUESTIONS,
+    TIERS.RESTRICTED,
+    REASONS.OTHERS_COMPENSATION,
+  ],
+  [
     'AC1.6: empty or single-word input is RESTRICTED',
     AMBIGUOUS_INPUTS,
     TIERS.RESTRICTED,
@@ -60,5 +87,11 @@ describe('classifyQuery', () => {
       expect(tier).toBe(expectedTier);
       expect(reasons).toContain(expectedReason);
     });
+  });
+
+  it('AC1.7: reports only the reasons for the winning tier', () => {
+    const { reasons } = classifyQuery("What's my salary compared to Jen's?");
+
+    expect(reasons).toEqual([REASONS.OTHERS_COMPENSATION]);
   });
 });
