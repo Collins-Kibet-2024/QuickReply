@@ -9,6 +9,13 @@ const OTHERS_COMPENSATION_QUESTIONS = [
   "How much is my manager's salary?",
 ];
 
+const GENERAL_POLICY_QUESTIONS = [
+  'How many paid holidays do we get?',
+  'When is open enrollment?',
+  'What is the parental leave policy?',
+  'How does FMLA leave work?',
+];
+
 describe('classifyQuery', () => {
   describe("AC1.1: others' compensation is RESTRICTED", () => {
     it.each(OTHERS_COMPENSATION_QUESTIONS)('%s', (question) => {
@@ -16,6 +23,15 @@ describe('classifyQuery', () => {
 
       expect(tier).toBe(TIERS.RESTRICTED);
       expect(reasons).toContain(REASONS.OTHERS_COMPENSATION);
+    });
+  });
+
+  describe('AC1.3: general policy questions are PUBLIC', () => {
+    it.each(GENERAL_POLICY_QUESTIONS)('%s', (question) => {
+      const { tier, reasons } = classifyQuery(question);
+
+      expect(tier).toBe(TIERS.PUBLIC);
+      expect(reasons).toContain(REASONS.GENERAL_POLICY);
     });
   });
 });
