@@ -2,6 +2,12 @@ import { TIERS, REASONS } from './tiers.js';
 
 const COMPENSATION_WORDS = String.raw`make|makes|salary|bonus|pay|earns?|compensation`;
 
+// Words whose "'s" is a contraction ("what's") or not a person ("Lumen's", "New Year's").
+const NON_PERSON_POSSESSIVES = [
+  'what', 'that', 'it', 'who', 'where', 'how', 'there', 'here', 'let', 'when', 'why',
+  'lumen', 'company', 'year', 'today', 'employee', 'everyone', 'everybody', 'one',
+];
+
 // Every rule is checked; when several match, the most restrictive tier wins (AC1.7).
 const RULES = [
   {
@@ -28,12 +34,25 @@ const RULES = [
     reason: REASONS.MEDICAL_ACCOMMODATION,
   },
   {
+    // A possessive that points at a person, named or by role ("Sarah's", "my coworker's").
+    // Possessives that are contractions or not about a person are excluded.
+    pattern: new RegExp(
+      String.raw`\b(?!(?:${NON_PERSON_POSSESSIVES.join('|')})['’]s\b)[a-z]+['’]s\b`,
+      'i',
+    ),
+    tier: TIERS.RESTRICTED,
+    reason: REASONS.OTHERS_RECORD,
+  },
+  {
     pattern: /\b(my\s+(salary|pto|401k)|do\s+i\s+have)\b/i,
     tier: TIERS.PERSONAL,
     reason: REASONS.SELF_RECORD,
   },
   {
-    pattern: /\b(polic(?:y|ies)|holidays?|enrollment|leave)\b/i,
+    // Handbook topics. Medical words such as "sick" are left out on purpose:
+    // "Is Dan out sick?" must not become PUBLIC.
+    pattern:
+      /\b(polic(?:y|ies)|holidays?|enrollment|leave|expenses?|reimburs\w*|receipts?|travel|pto|time\s+off|accru\w*|carry\s+over|401\(?k\)?|retirement|vest\w*|benefits?|insurance|dental|vision)(?!\w)/i,
     tier: TIERS.PUBLIC,
     reason: REASONS.GENERAL_POLICY,
   },
