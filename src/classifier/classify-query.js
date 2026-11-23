@@ -23,6 +23,11 @@ const RULES = [
 
 /** Classify a user question into a data-sensitivity tier with reason codes. */
 export function classifyQuery(text) {
+  const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+  if (wordCount < 2) {
+    return { tier: TIERS.RESTRICTED, reasons: [REASONS.AMBIGUOUS_INPUT] };
+  }
+
   const rule = RULES.find(({ pattern }) => pattern.test(text));
   if (rule) {
     return { tier: rule.tier, reasons: [rule.reason] };
