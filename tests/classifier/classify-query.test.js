@@ -23,6 +23,8 @@ const SELF_RECORD_QUESTIONS = [
   'Did my 401k enrollment go through?',
 ];
 
+const AMBIGUOUS_INPUTS = ['', '   ', 'salary', 'holidays'];
+
 describe('classifyQuery', () => {
   describe("AC1.1: others' compensation is RESTRICTED", () => {
     it.each(OTHERS_COMPENSATION_QUESTIONS)('%s', (question) => {
@@ -48,6 +50,15 @@ describe('classifyQuery', () => {
 
       expect(tier).toBe(TIERS.PERSONAL);
       expect(reasons).toContain(REASONS.SELF_RECORD);
+    });
+  });
+
+  describe('AC1.6: empty or single-word input is RESTRICTED', () => {
+    it.each(AMBIGUOUS_INPUTS)('%j', (input) => {
+      const { tier, reasons } = classifyQuery(input);
+
+      expect(tier).toBe(TIERS.RESTRICTED);
+      expect(reasons).toContain(REASONS.AMBIGUOUS_INPUT);
     });
   });
 });
