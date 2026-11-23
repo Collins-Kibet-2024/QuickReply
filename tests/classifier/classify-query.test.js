@@ -26,6 +26,16 @@ const GENERAL_POLICY_QUESTIONS = [
   'Which health insurance plans are offered?',
   "What is Lumen's 401k match?",
   "Is New Year's Day a paid holiday?",
+  // Capitalized words that are not people must not trigger the name rule.
+  'Is Juneteenth a paid holiday?',
+  'Is Martin Luther King Jr. Day a paid holiday?',
+  'Do we get Christmas Eve off as a holiday?',
+  'If a holiday falls on a Saturday, is it moved to Friday?',
+  'When is open enrollment in November?',
+  'Can I use PTO on the Friday after Thanksgiving?',
+  "Can I take PTO if I'm new?",
+  'How does the Family and Medical Leave Act work?',
+  'What benefits does the Employee Assistance Program offer?',
 ];
 
 const SELF_RECORD_QUESTIONS = [
@@ -56,6 +66,12 @@ const OTHERS_RECORD_QUESTIONS = [
   "what is jen's pto balance?",
   "Is Mark's 401k vested?",
   "Did my coworker's expense report get approved?",
+  // Bare names, with no possessive.
+  'Is Dan on PTO?',
+  'Did Jen enroll in dental?',
+  'What benefits does Sarah get?',
+  'Can Priya carry over her PTO?',
+  'Thanks. Did Jen enroll in dental?',
 ];
 
 const AMBIGUOUS_INPUTS = ['', '   ', 'salary', 'holidays'];
@@ -92,7 +108,7 @@ const CASES = [
     REASONS.OTHERS_COMPENSATION,
   ],
   [
-    "AC1.3 guard: another person's records are RESTRICTED",
+    "AC1.3 guard: another person's records (possessive or bare name) are RESTRICTED",
     OTHERS_RECORD_QUESTIONS,
     TIERS.RESTRICTED,
     REASONS.OTHERS_RECORD,
